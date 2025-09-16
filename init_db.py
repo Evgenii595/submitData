@@ -23,12 +23,13 @@ def init_database():
     database = os.getenv('FSTR_DB_NAME', 'pereval')
     
     try:
-        # Подключаемся к PostgreSQL (без указания базы данных)
+        # Подключаемся к PostgreSQL (к базе postgres для создания новой БД)
         conn = psycopg2.connect(
             host=host,
             port=port,
             user=login,
-            password=password
+            password=password,
+            database='postgres'
         )
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()

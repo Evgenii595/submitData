@@ -23,20 +23,17 @@ pip install -r requirements.txt
 
 ### 2. Настройка переменных окружения
 
-Скопируйте `env.example` в `.env` и настройте параметры подключения к БД:
+Установите переменные окружения для подключения к PostgreSQL:
 
 ```bash
-cp env.example .env
+export FSTR_DB_HOST=127.0.0.1
+export FSTR_DB_PORT=5432
+export FSTR_DB_LOGIN=pereval_user
+export FSTR_DB_PASS=password
+export FSTR_DB_NAME=pereval
 ```
 
-Отредактируйте `.env`:
-```
-FSTR_DB_HOST=localhost
-FSTR_DB_PORT=5432
-FSTR_DB_LOGIN=postgres
-FSTR_DB_PASS=your_password
-FSTR_DB_NAME=pereval
-```
+**Примечание:** Убедитесь, что PostgreSQL запущен и пользователь `pereval_user` создан с паролем `password`.
 
 ### 3. Инициализация базы данных
 

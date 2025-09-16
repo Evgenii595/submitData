@@ -1,0 +1,15 @@
+INFO:     Started server process [60598]
+INFO:     Waiting for application startup.
+INFO:database.db_manager:Успешное подключение к базе данных
+INFO:__main__:Приложение запущено
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63766 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63773 - "GET /health HTTP/1.1" 200 OK
+/Users/a/Documents/Skillfactory/Progect/Stajirovka/main.py:139: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  pereval_dict = pereval_data.dict()
+INFO:database.db_manager:Создан новый пользователь с ID: 1
+INFO:database.db_manager:Добавлен перевал с ID: 1
+INFO:__main__:Успешно добавлен перевал с ID: 1
+INFO:     127.0.0.1:63775 - "POST /submitData HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63777 - "GET /pereval/1 HTTP/1.1" 200 OK
