@@ -195,6 +195,36 @@ async def get_pereval(pereval_id: int):
     return pereval_data
 
 
+@app.get("/submitData/{pereval_id}")
+async def get_pereval_by_id(pereval_id: int):
+    """
+    Получение записи о перевале по ID
+    
+    Args:
+        pereval_id: ID перевала
+        
+    Returns:
+        Данные о перевале с полной информацией включая статус модерации
+    """
+    global db_manager
+    
+    if not db_manager:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка инициализации базы данных"
+        )
+    
+    pereval_data = db_manager.get_pereval_by_id(pereval_id)
+    
+    if not pereval_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Перевал с ID {pereval_id} не найден"
+        )
+    
+    return pereval_data
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
