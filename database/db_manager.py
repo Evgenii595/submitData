@@ -300,6 +300,36 @@ class DatabaseManager:
             logger.error(f"Ошибка в данных перевала: {e}")
             return {"state": 0, "message": f"Ошибка в данных: {str(e)}"}
     
+    def get_pereval_by_user_email(self, email: str) -> list:
+        """
+        Получение всех перевалов пользователя по email
+        
+        Args:
+            email: Email пользователя
+            
+        Returns:
+            List: Список перевалов пользователя
+        """
+        if not self.connection:
+            return []
+        
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT p.*, u.email, u.phone, u.fam, u.name, u.otc
+                    FROM pereval_added p
+                    JOIN pereval_users u ON p.user_id = u.id
+                    WHERE u.email = %s
+                    ORDER BY p.date_added DESC
+                """, (email,))
+                
+                results = cursor.fetchall()
+                return [dict(row) for row in results]
+                
+        except psycopg2.Error as e:
+            logger.error(f"Ошибка при получении перевалов пользователя: {e}")
+            return []
+    
     def update_pereval_status(self, pereval_id: int, status: str) -> bool:
         """
         Обновление статуса модерации перевала
