@@ -211,6 +211,95 @@ class DatabaseManager:
             logger.error(f"Ошибка при получении перевала: {e}")
             return None
     
+    def update_pereval(self, pereval_id: int, pereval_data: dict) -> dict:
+        """
+        Обновление существующего перевала
+        
+        Args:
+            pereval_id: ID перевала для обновления
+            pereval_data: Новые данные о перевале
+            
+        Returns:
+            Dict: Результат обновления с state и message
+        """
+        if not self.connection:
+            return {"state": 0, "message": "Нет подключения к базе данных"}
+        
+        try:
+            with self.connection.cursor() as cursor:
+                # Проверяем, существует ли перевал и его статус
+                cursor.execute("""
+                    SELECT status FROM pereval_added WHERE id = %s
+                """, (pereval_id,))
+                
+                result = cursor.fetchone()
+                if not result:
+                    return {"state": 0, "message": f"Перевал с ID {pereval_id} не найден"}
+                
+                if result['status'] != 'new':
+                    return {"state": 0, "message": f"Перевал с ID {pereval_id} уже был обработан модератором"}
+                
+                # Подготавливаем данные для обновления
+                add_time = None
+                if pereval_data.get('add_time'):
+                    try:
+                        from datetime import datetime
+                        add_time = datetime.strptime(pereval_data['add_time'], '%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        add_time = datetime.now()
+                else:
+                    from datetime import datetime
+                    add_time = datetime.now()
+                
+                # Обновляем данные о перевале
+                import json
+                cursor.execute("""
+                    UPDATE pereval_added SET
+                        beauty_title = %s,
+                        title = %s,
+                        other_titles = %s,
+                        connect = %s,
+                        add_time = %s,
+                        latitude = %s,
+                        longitude = %s,
+                        height = %s,
+                        level_winter = %s,
+                        level_summer = %s,
+                        level_autumn = %s,
+                        level_spring = %s,
+                        raw_data = %s,
+                        images = %s
+                    WHERE id = %s
+                """, (
+                    pereval_data.get('beauty_title', ''),
+                    pereval_data['title'],
+                    pereval_data.get('other_titles', ''),
+                    pereval_data.get('connect', ''),
+                    add_time,
+                    float(pereval_data['coords']['latitude']),
+                    float(pereval_data['coords']['longitude']),
+                    int(pereval_data['coords']['height']),
+                    pereval_data.get('level', {}).get('winter', ''),
+                    pereval_data.get('level', {}).get('summer', ''),
+                    pereval_data.get('level', {}).get('autumn', ''),
+                    pereval_data.get('level', {}).get('spring', ''),
+                    json.dumps(pereval_data, ensure_ascii=False),
+                    json.dumps(pereval_data.get('images', []), ensure_ascii=False),
+                    pereval_id
+                ))
+                
+                self.connection.commit()
+                logger.info(f"Обновлен перевал с ID: {pereval_id}")
+                return {"state": 1, "message": "Запись успешно обновлена"}
+                
+        except psycopg2.Error as e:
+            logger.error(f"Ошибка при обновлении перевала: {e}")
+            self.connection.rollback()
+            return {"state": 0, "message": f"Ошибка базы данных: {str(e)}"}
+        except (ValueError, KeyError) as e:
+            logger.error(f"Ошибка в данных перевала: {e}")
+            return {"state": 0, "message": f"Ошибка в данных: {str(e)}"}
+    
     def update_pereval_status(self, pereval_id: int, status: str) -> bool:
         """
         Обновление статуса модерации перевала
