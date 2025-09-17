@@ -295,6 +295,39 @@ async def update_pereval(pereval_id: int, pereval_data: PerevalSubmitData):
         }
 
 
+@app.get("/submitData/")
+async def get_pereval_by_user_email(user__email: str = Query(..., description="Email пользователя")):
+    """
+    Получение списка всех перевалов пользователя по email
+    
+    Args:
+        user__email: Email пользователя
+        
+    Returns:
+        Список всех перевалов пользователя
+    """
+    global db_manager
+    
+    if not db_manager:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка инициализации базы данных"
+        )
+    
+    pereval_list = db_manager.get_pereval_by_user_email(user__email)
+    
+    if not pereval_list:
+        return {
+            "message": f"Перевалы для пользователя с email {user__email} не найдены",
+            "pereval_list": []
+        }
+    
+    return {
+        "message": f"Найдено {len(pereval_list)} перевалов для пользователя {user__email}",
+        "pereval_list": pereval_list
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
