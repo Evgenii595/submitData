@@ -225,6 +225,76 @@ async def get_pereval_by_id(pereval_id: int):
     return pereval_data
 
 
+@app.patch("/submitData/{pereval_id}")
+async def update_pereval(pereval_id: int, pereval_data: PerevalSubmitData):
+    """
+    Редактирование существующей записи о перевале
+    
+    Редактировать можно только записи со статусом 'new'.
+    Нельзя редактировать ФИО, email и телефон пользователя.
+    
+    Args:
+        pereval_id: ID перевала для редактирования
+        pereval_data: Новые данные о перевале
+        
+    Returns:
+        Результат обновления с state и message
+    """
+    global db_manager
+    
+    if not db_manager:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка инициализации базы данных"
+        )
+    
+    try:
+        # Валидация обязательных полей
+        if not pereval_data.title or not pereval_data.title.strip():
+            return {
+                "state": 0,
+                "message": "Отсутствует обязательное поле: title"
+            }
+        
+        if not pereval_data.coords:
+            return {
+                "state": 0,
+                "message": "Отсутствуют обязательные поля: coords"
+            }
+        
+        # Дополнительная валидация координат
+        try:
+            float(pereval_data.coords.latitude)
+            float(pereval_data.coords.longitude)
+            int(pereval_data.coords.height)
+        except (ValueError, TypeError):
+            return {
+                "state": 0,
+                "message": "Некорректные данные координат"
+            }
+        
+        # Преобразуем Pydantic модель в словарь
+        pereval_dict = pereval_data.dict()
+        
+        # Обновляем перевал в базе данных
+        result = db_manager.update_pereval(pereval_id, pereval_dict)
+        
+        return result
+        
+    except ValueError as e:
+        logger.error(f"Ошибка валидации данных: {str(e)}")
+        return {
+            "state": 0,
+            "message": f"Ошибка валидации данных: {str(e)}"
+        }
+    except Exception as e:
+        logger.error(f"Ошибка при обработке запроса: {str(e)}")
+        return {
+            "state": 0,
+            "message": "Внутренняя ошибка сервера"
+        }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
